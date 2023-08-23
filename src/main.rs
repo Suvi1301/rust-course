@@ -211,7 +211,9 @@ fn main() {
     
     let user_input: f64 = user_input.trim().parse().expect("Invalid Input");
     println!("You typed '{}'", user_input);
-    
+
+    ownership();
+    references();
 }
 
 
@@ -238,3 +240,110 @@ fn eucledian_dist(coord1: (i32, i32), coord2: (i32, i32)) -> f32 {
 }
 
 
+
+/*
+RUST OWNERSHIP
+    - Each value in Rust has a variable thats called its owner
+    - There can only be one owner at a time
+    - When the owner goes out of scope, the value will be dropped.
+*/
+
+fn ownership() {
+    let x: f64 = 32.6;
+    let y: f64 = x; // A copy is made i.e. new location in memory.
+    // These are primitive (i.e. cannot be changed) fixed in size. (stack)
+
+    println!("x: {}, y: {}", x, y);
+
+    let s1: String = String::from("abc"); // assigns some memory containing value "abc" owned by s1
+    // let s2: String = s1; // Not a copy, moves the value in memory to the variable s2. s1 is not valid anymore.
+    // Non primitive type: computation is required to see how to assign memory when they change etc. (heap)
+
+    // Therefore, ownership needs to be thought of with non-primitives.
+
+    let s2: &String = &s1; // Reference to value of s1 and doesnt change ownership.
+    // Referencing doesnt change ownership, this is borrowing value.
+    println!("s1: {}, s2: {}", s1, s2);
+
+
+    let vec_1: Vec<i32> = vec![1, 2, 3, 4, 5];
+    let vec_2: &Vec<i32> = &vec_1;
+    println!("{:?}, {:?}", vec_1, vec_2);
+
+    let vec_3: Vec<i32> = vec_1.clone(); // Here we make a new copy of vec_1 in new memory.
+    println!("{:?}", vec_3);
+    
+
+    let stack_num: i32 = 32;
+    let mut heap_vec: Vec<i32> = vec![4, 5, 6];
+    stack_function(stack_num);
+    println!("The value inside the main of stack_num: {}", stack_num);
+
+    /* Here we pass in a mutable reference to heap_vec. i.e. The ownership remains with heap_vec
+    the function will get a reference to heap_vec which is mutable.
+    
+    If we pass in heap_vec without &, then the ownership will pass to the the variable defined
+    inside the function. Hence, when the function finishes, the ownership will be out of scope,
+    and the value will be dropped -> head_vec will no longer have a value.
+
+    If we pass &heap_vec without the &mut then we cannot make changes to the value this reference
+    inside the called function because this reference is not mutable.
+    */
+    heap_functon(&mut heap_vec);
+    println!("Value inside the main of heap_vec: {:?}", heap_vec);
+
+}
+
+
+fn stack_function(mut stack_num:i32) {
+    stack_num = 56;
+    println!("Var: {}", stack_num);
+}
+
+fn heap_functon(var: &mut Vec<i32>) {
+    /* 
+    Here we receive a mutable reference which means ownership isnt passed to var.
+    var is just a reference which is also mutable which can mutate the original
+    value stored in the variable who's reference is passed in.
+    */
+    var.push(100);
+    println!("Heap Var: {:?}", var);
+}
+
+
+
+/*
+REFERENCES RULES:
+    - One mutable reference in a scope
+    - Many immutable references
+    - Mutable and immutable cannot coexist within a scope.
+    - Scope of a reference (scope is not just code block. Definition to Last usage).
+    - Data should not change when immutable references are in scope
+*/
+
+fn references() {
+    let mut heap_num: Vec<i32> = vec![4, 5, 6];
+    let _ref1: &mut Vec<i32> = &mut heap_num; // Cannot have another mutable reference to this in this scope.
+
+    let mut heap_num: Vec<i32> = vec![4, 6, 7];
+    let iref1: &Vec<i32> = &heap_num;
+    let iref2: &Vec<i32> = &heap_num; // Can have as many immutable references.
+    println!("{:?}, {:?}", iref1, iref2);
+
+    let mut heap_num: Vec<i32> = vec![3, 4, 5];
+    let iref1: &Vec<i32> = &heap_num;
+    let iref2: &Vec<i32> = &heap_num; // scope of ref2 starts here!
+    println!("{:?}, {:?}", iref1, iref2); // scope of ref2 ends here (last usage)
+
+    // Since scope of ref2 is done. We are out of scope so we can now define a mutable reference.
+    let mref1: &mut Vec<i32> = &mut heap_num;
+    println!("{:?}", mref1);
+
+    let mut heap_num: Vec<i32> = vec![3, 4, 5];
+    let iref1: &Vec<i32> = &heap_num;
+    let iref2: &Vec<i32> = &heap_num;
+
+    // heap_num.push(68); // Cannot change this data as iref1 in scope.
+    println!("{:?}, {:?}", iref1, iref2);
+
+}
