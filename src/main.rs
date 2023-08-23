@@ -214,6 +214,15 @@ fn main() {
 
     ownership();
     references();
+    if_statements();
+    match_statement();
+    loops();
+    square_difference();
+    sum_of_3_5_divisible();
+    cars_produced_per_minute();
+    let phrase: &str = "tenet";
+    println!("'{}' is a palindrome = {}", phrase, is_palindrome(phrase));
+;
 }
 
 
@@ -346,4 +355,224 @@ fn references() {
     // heap_num.push(68); // Cannot change this data as iref1 in scope.
     println!("{:?}, {:?}", iref1, iref2);
 
+}
+
+
+// CONTROL STRUCTURES
+fn if_statements() {
+    let some_number: i32 = 40;
+    let another_number: i32 = 45;
+    if some_number <= 50 && another_number < 55 {
+        println!("Yes!");
+    }
+
+    let flag_1: bool = false;
+    let flag_2: bool = true;
+
+    if flag_1 || flag_2 {
+        println!("Hi!")
+
+    } else if another_number > 55 {
+        println!("Hello!");
+    } else {
+        println!("Bye!");
+    }
+
+
+    // if let
+    let marks: i32 = 95;
+    let grade: char = if marks >= 90 {
+        'A'
+    } else if marks >= 80 {
+        'B'
+    } else {
+        'F'
+    };
+    println!("Grade = {}", grade);
+
+
+}
+
+fn match_statement() {
+    // This is like switch case statement.
+    let some_number: i32 = 100;
+    match some_number {
+        1 => println!("The number is 1"),
+        2 | 3 => println!("The number is 2 or 3"),
+        4..=100 => println!("The number is between 4 and 100"),
+        _ => println!("The number is greater than 100"),
+    }
+
+    let marks: i32 = 95;
+    let mut _grade: char = match marks {
+        90..=100 => {
+            println!("WOOHOO!");
+            'A'
+        },
+        80..=89 => 'B',
+        _ => 'F',
+    };
+}
+
+fn loops() {
+    /*
+    loop {
+        println!("Infinite loop!")
+    }
+    */
+
+    // WHILE LOOOPS
+
+    let my_number: u8 = 5;
+    let mut guess: bool = false;
+    println!("Guess my number between 1 and 20");
+
+    while !guess {
+        let mut input: String = String::new();
+        std::io::stdin()
+        .read_line(&mut input)
+        .expect("failed to read input");
+        let input: u8 = input.trim().parse().expect("invalid input");
+        guess = input == my_number;
+    };
+
+    println!("Enter a number and I will tell you next number that is divisible by 2 and 5");
+    let mut input_number: String = String::new();
+    std::io::stdin()
+    .read_line(&mut input_number)
+    .expect("Failed to read input");
+
+    let mut number: u8 = input_number.trim().parse().expect("Invalid input");
+    number += 1;
+    while !(number % 2 == 0 && number % 5 == 0) {
+        number += 1;
+    }
+    println!("next number div by 2 and 5 is: {}", number);
+
+
+    // FOR LOOPS
+    let some_vec: Vec<i32> = vec![45, 34, 85, 89, 192, 981];
+    for i in 0..some_vec.len() {
+        println!("{}", some_vec[i]);
+    }
+
+    for i in some_vec {
+        println!("{}", i);
+    } // Here the ownesrhip will go to i so after loop some_vec will be ded.
+
+    let mut some_vec: Vec<i32> = vec![45, 34, 85, 89, 192, 981];
+    for i in some_vec.iter() { // can also do &some_vec
+        println!("{}", i);
+    }
+    println!("I can use some_vec here because iter doesnt change ownership: {:?}", some_vec);
+
+    for i in some_vec.iter_mut() { // can also do &mut some_vec
+        *i += 5;
+    }
+
+    println!("----------");
+    let mut var: i32 = 13;
+    loop {
+        var -= 1;
+        if var % 13 == 0 {
+            continue;
+        }
+        if var == 1{
+            break;
+        }
+        println!("{}", var);
+    }
+
+}
+
+fn square_difference() {
+    let mut input: String = String::new();
+    println!("Enter N for first N integers sum of squares difference: ");
+    std::io::stdin()
+    .read_line(&mut input)
+    .expect("Failed to read input");
+
+    let input_number: u32 = input.trim().parse().expect("Invalid input number.");
+
+    let sum_squared: u32 = {
+        let mut sum: u32 = 0;
+        for i in 1..=input_number {
+            sum += i;
+        };
+        sum.pow(2)
+    };
+
+    let sum_of_squares: u32 = {
+        let mut sum: u32 = 0;
+        for i in 1..=input_number {
+            sum += i.pow(2);
+        }
+        sum
+    };
+    println!("Difference between the Square of sum and sum of squares upto {} = {}", input_number, sum_squared - sum_of_squares);
+}
+
+fn sum_of_3_5_divisible() {
+    let mut input: String = String::new();
+    println!("Enter N for sum of numbers divisible by 3 or 5: ");
+    std::io::stdin()
+    .read_line(&mut input)
+    .expect("Failed to read input");
+
+    let input_number: u32 = input.trim().parse().expect("Invalid input number.");
+    
+    let mut sum: u32 = 0;
+
+    for i in 1..input_number {
+        if i % 3 == 0 || i % 5 == 0 {
+            sum += i;
+        }
+    }
+    println!("Sum of multiples of 3 and 5 upto {} = {}", input_number, sum);
+}
+
+fn total_production(hours: f32, speed: u8) -> i32 {
+    let success_ratio: f32 = match speed {
+        1..=4 => 1.0,
+        5..=8 => 0.9,
+        9..=10 => 0.77,
+        _ => 0.0,
+    };
+
+    let cars_produced: i32 = (221.0 * hours * speed as f32 * success_ratio) as i32;
+    println!("Cars produced in {} hrs at speed {} = {}", hours, speed, cars_produced);
+    cars_produced
+}
+
+fn cars_produced_per_minute() {
+    let mut input: String = String::new();
+
+    println!("Enter the number of hours and speed as (h, s): ");
+    std::io::stdin()
+    .read_line(&mut input)
+    .expect("Failed to read input");
+    
+    let mut input_vals: Vec<&str> = vec![];
+    for item in input.split_whitespace() {
+        input_vals.push(item);
+    };
+    let hours: f32 = input_vals[0].parse().expect("Invalid input hours");
+    let speed: u8 = input_vals[1].parse().expect("Invalid input speed");
+
+    let total_cars_produced: i32 = total_production(hours, speed);
+    println!("Cars produced per minute = {}", total_cars_produced as f32 / hours / 60.0);
+}
+
+fn is_palindrome(phrase: &str) -> bool {
+    let mut phrase_as_vec: Vec<char> = vec![];
+    for character in phrase.chars() {
+        phrase_as_vec.push(character);
+    };
+
+    for i in 0..phrase_as_vec.len() / 2 {
+        if phrase_as_vec[i] != phrase_as_vec[phrase_as_vec.len() - 1 - i] {
+            return false;
+        }
+    }
+    true
 }
