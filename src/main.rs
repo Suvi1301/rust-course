@@ -1,3 +1,6 @@
+use std::hash;
+use std::{f32::consts::PI, fmt::Arguments};
+
 fn main() {
     // this is a comment!
 
@@ -222,6 +225,17 @@ fn main() {
     cars_produced_per_minute();
     let phrase: &str = "tenet";
     println!("'{}' is a palindrome = {}", phrase, is_palindrome(phrase));
+
+    structures();
+    tuple_structures();
+    traits();
+    enums();
+    generics();
+    option_enum();
+    result_enum();
+    hash_maps();
+    library_mgmt();
+    student_mgr_assignment();
 ;
 }
 
@@ -575,4 +589,550 @@ fn is_palindrome(phrase: &str) -> bool {
         }
     }
     true
+}
+
+// STRUCTS BASICS
+struct Person {
+    name: String,
+    age: u8,
+    gender: char,
+    salary: i32,
+}
+
+// Class methods etc can be implemented here
+impl Person {
+    fn compute_taxes(&self) -> f32 {
+        0.2 * self.salary as f32
+    }
+
+    // This is like adding a __init__ for this stuct
+    fn new() -> Self {
+        Person { name: String::from("default"), age: 0, gender: 'M', salary: 10_000 }
+    }
+
+    fn static_method(param: f32) -> f32 {
+        0.4 * param
+    }
+}
+
+fn structures() {
+    let person_1: Person = Person{
+        name: String::from("Suvineet Singh"),
+        age: 25,
+        salary: 50_000,
+        gender: 'M',
+    };
+
+    println!("Taxes for {} at salary {} = {}", person_1.name, person_1.salary, person_1.compute_taxes());
+    println!("{}", Person::static_method(3.0));
+
+    let mut default_person: Person = Person::new();
+    println!("Constructor with some defaults: {} {}", default_person.name, default_person.age);
+    default_person.age = 20;
+    println!("Constructor with some defaults: {} {}", default_person.name, default_person.age);
+
+    let person_3: Person = Person { 
+        name: String::from("Person3"), 
+        age: 10,
+        ..person_1 // here we are initialising person_3 with the rest of attributes from person_1 (Base construct)
+    };
+    println!("Person3 = {} {}", person_3.name, person_3.gender);
+}
+
+// TUPLE STRUCTURE
+// simple tuples do not have an associated name, but tuple structs do.
+struct Numbers(i32, i32);
+
+impl Numbers {
+    fn greater(&self) -> i32 {
+        if self.0 >= self.1 { self.0 } else { self.1 } 
+    }
+
+    fn lesser(&self) -> i32 {
+        if self.0 <= self.1 { self.0 } else { self.1 }
+    }
+}
+
+fn tuple_structures() {
+    let some_nums: Numbers = Numbers(12, 24);
+    println!("Some numbers = {}, {}", some_nums.0, some_nums.1);
+    println!("Greater = {}, Lesser = {}", some_nums.greater(), some_nums.lesser());
+}
+
+
+// Traits
+struct Student {
+    name_std: String,
+    age_std: u8,
+    sex: char,
+}
+
+trait GeneralInfo {
+    fn info(&self) -> (&str, u8, char); // just add function defs in trait not implementation.
+
+    fn gender_info(&self) -> char;
+}
+
+impl GeneralInfo for Person {
+    fn info(&self) -> (&str, u8, char) {
+        (&self.name, self.age, self.gender)
+    }
+
+    fn gender_info(&self) -> char {
+        self.gender
+    }
+}
+
+impl GeneralInfo for Student { // all methods of trait must be implemented.
+    fn info(&self) -> (&str, u8, char) {
+        (&self.name_std, self.age_std, self.sex)
+    }
+
+    fn gender_info(&self) -> char {
+        self.sex
+    }
+}
+
+fn traits() {
+    let person_1: Person = Person{
+        name: String::from("Suvi"),
+        age: 25,
+        gender: 'M',
+        salary: 50_000,
+    };
+
+    let student_1: Student = Student { name_std: String::from("Student"), age_std: 30, sex: 'F' };
+    println!("Person info: {:?}", person_1.info());
+    println!("Student info: {:?}", student_1.info());
+
+    let circle: Circle = Circle{
+        radius: 3.0
+    };
+    let rectangle: Rectangle = Rectangle{
+        length: 2.0,
+        width: 3.0,
+    };
+
+    println!("Area of circle with radius {} = {}. Aread of Rectangle with dimensions {:?} = {}", circle.radius, circle.area(), (rectangle.length, rectangle.width), rectangle.area());
+    println!("Circumference of circle with radius {} = {}. Perimeter of Rectangle with dimensions {:?} = {}", circle.radius, circle.perimeter(), (rectangle.length, rectangle.width), rectangle.perimeter());
+    circle.default_function();
+    println!("circle = {}, rectangle = {}", circle.default_function(), rectangle.default_function());
+}
+
+struct Circle {
+    radius: f32,
+}
+
+struct Rectangle {
+    length: f32,
+    width: f32,
+}
+
+struct Square {
+    width: f32,
+}
+
+trait ShapeInfo {
+    fn area(&self) -> f32;
+    fn perimeter(&self) -> f32;
+    fn default_function(&self) -> &str {
+        "I am implemented in the trait definition but I am not implemented for this type."
+    }
+}
+
+impl ShapeInfo for Circle {
+    fn area(&self) -> f32 {
+        PI *self.radius.powf(2.0)
+    }
+
+    fn perimeter(&self) -> f32 {
+        PI * 2.0 * self.radius
+    }
+
+    fn default_function(&self) -> &str {
+        "I am a circle!"
+    }
+}
+
+impl ShapeInfo for Rectangle {
+    fn area(&self) -> f32 {
+        self.length * self.width
+    }
+
+    fn perimeter(&self) -> f32 {
+        2.0 * (self.length + self.width)
+    }
+}
+
+impl ShapeInfo for Square {
+    fn area(&self) -> f32 {
+        self.width.powf(2.0)
+    }
+
+    fn perimeter(&self) -> f32 {
+        4.0 * self.width
+    }
+
+    fn default_function(&self) -> &str {
+        "I am a square!"
+    }
+}
+
+// Enums
+
+enum Colour {
+    Green = 12,
+    Red, // This will be 13
+    Yellow, // This will be 14
+    Blue = 10, 
+    Black, // This will try to be 9
+    
+}
+
+enum Vehicle {
+    Car = 15,
+    Train,
+    Bus = 20
+}
+
+impl Vehicle {
+    fn travel_allowance(&self, miles: i32) -> f32 {
+        match self {
+            Vehicle::Car => miles as f32 * 14.0,
+            Vehicle::Train => miles as f32 * 18.0,
+            Vehicle::Bus => miles as f32 * 12.0,
+        }
+    }
+}
+
+
+fn enums() {
+    println!("Green = {:?}", Colour::Green as i32);
+    println!("Red = {:?}", Colour::Red as i32);
+    println!("Yellow = {:?}", Colour::Yellow as i32);
+    println!("Blue = {:?}", Colour::Blue as i32);
+
+    let car: Vehicle = Vehicle::Car;
+    let bus: Vehicle = Vehicle::Bus;
+    let train: Vehicle = Vehicle::Train;
+    println!("Travel allowances. Car: {}, Train: {}, Bus: {}", car.travel_allowance(12), train.travel_allowance(12), bus.travel_allowance(12));
+
+    // We can also store values in enum values.
+    let child: AgeGroup = AgeGroup::Child(12);
+    let adult: AgeGroup = AgeGroup::Adult(21);
+    let senior: AgeGroup = AgeGroup::Senior(65);
+    println!("Ticket prices. child = {}, adult = {}, senior = {}", child.ticket_price(), adult.ticket_price(), senior.ticket_price());
+
+    let some_val: Vec<Value> = vec![Value::Integer(12), Value::Float(2.0)];
+    println!("The value of the integer is {:?} and float is {:?}", some_val[0], some_val[1]);
+
+    for i in some_val.iter() {
+        match i {
+            Value::Integer(num) => println!("The value of the integer is {}", *num),
+            Value::Float(num) => println!("The value of the float is {}", *num),
+        }
+    }
+}
+
+enum AgeGroup {
+    // Here we are attaching some data of type u32 to each enum value (date being age)
+    Child(u8),
+    Adult(u8),
+    Senior(u8),
+}
+
+impl AgeGroup {
+    fn ticket_price(&self) -> f32 {
+        match self {
+            AgeGroup::Child(age) => *age as f32 * 1.0,
+            AgeGroup::Adult(age) => *age as f32 * 1.5,
+            AgeGroup::Senior(age) => *age as f32 * 1.1,
+        }
+    }
+}
+
+#[derive(Debug)] // Here we allow enum to use the Debug Trait which is used for printing stuff.
+enum Value {
+    Integer(i32),
+    Float(f32),
+}
+
+
+// GENERICS
+
+/* 
+Here we take in a variable of generic type T.
+We also restrict T to be of types that implement the 
+traits of Multiplication and Copy resulting in an output of type T.
+Primitive types are Copied and not Moved.
+*/
+fn square<T: std::ops::Mul<Output = T> + Copy> (x: T) -> T {
+    x * x
+}
+
+
+/*
+Here the restricitons in the definition may get too long. So another way to define
+is by using the 'where' keyword.
+*/
+fn square_with_where_keyword<T> (x: T) -> T
+where T: std::ops::Mul<Output = T> + Copy {
+    x * x
+}
+
+/* 
+Here we define Point with 2 generic types which each x,y can take
+Allowing for point such as (2, 3.4) rather than both having to be
+of the same type.
+*/
+
+struct Point<T, U> {
+    x: T,
+    y: U,
+}
+
+impl<T, U> Point<T,U> 
+where T: std::fmt::Debug, U: std::fmt::Debug {
+    fn print(&self) {
+        println!("The value of the point coordinates are {:?}, {:?}", self.x, self.y);
+    }
+}
+
+fn generics() {
+    println!("square i32: {}", square(2 as i32));
+    println!("square f32: {}", square(2.0 as f32));
+    println!("square u8: {}", square_with_where_keyword(2 as u8));
+
+    let point: Point<i32, f32> = Point{x: 2, y: 3.4};
+    point.print();
+}
+
+
+/*
+Option Enum defined in Rust as:
+
+enum Option<T> {
+    None,
+    Some(T),
+}
+*/
+
+
+fn option_enum() {
+    let mut disease: Option<String> = None;
+    disease = Some(String::from("Diabetes"));
+    match disease {
+        Some(disease_name) => println!("You have the disease of {}", disease_name),
+        None => println!("You dont have a disease!"),
+    }
+
+    let s1: Option<&str> = Some("Some string");
+    println!("The value of s1 is {:?} and the value of s1 itself after unwrapping is {:?}", s1, s1.unwrap());
+
+
+    let f1: Option<f64> = Some(10.54);
+    let mut f2: f64 = 16.5;
+    f2 += f1.unwrap();
+    println!("The value of the sum is {}", f2);
+
+    let number: Option<i32> = Some(6);
+    if square_with_option(number) != None {
+        println!("The result of the square is {:?}", square_with_option(Some(6)).unwrap());
+    } else {
+        println!("We dont have a value");
+    }
+}
+
+
+fn square_with_option(num: Option<i32>) -> Option<i32> {
+    match num {
+        Some(number) => Some(number * number),
+        None => None,
+    }
+}
+
+
+/*
+Result Enum defined in Rust as:
+
+enum Result<T, E> {
+    Ok(T),
+    Err(E),
+}
+*/
+
+fn division(divident: f64, divisor: f64) -> Result<f64, String> {
+    if divisor == 0.0 {
+        Err(String::from("Error: Division by zero"))
+    } else {
+        Ok(divident / divisor)
+    }
+}
+
+fn result_enum() {
+    println!("4.0 / 3.0 = {:?}", division(4.0, 3.0));
+    println!("3.0 / 0.0 = {:?}", division(3.0, 0.0));
+    println!("0.0 / 1.0 = {:?}", division(0.0, 1.0));
+
+    let some_vec: Vec<i32> = vec![5, 5, 2, 1, 5, 9];
+    let result1: Result<&i32, &str> = match some_vec.get(5) {
+        Some(a) => Ok(a),
+        None => Err("The value doesn't exist"),
+    };
+    println!("The value of result is {:?}", result1);
+}
+
+
+// Hash Maps
+use std::collections::HashMap;
+fn hash_maps() {
+    let mut person:HashMap<&str, i32> = HashMap::new();
+    person.insert("Suvi", 25);
+    person.insert("John", 45);
+
+    println!("The age is {:?}", person.get("Suvi").unwrap());
+
+    if person.contains_key("John") {
+        println!("The key exists");
+    } else {
+        println!("The key doesnt exist");
+    }
+
+    match person.get("Alex") {
+        Some(age) => println!("The key exists with value = {}", age),
+        None => println!("Key doesnt exist")
+    }
+
+    for (name, age) in &person {
+        println!("The person {} is {} years old", name, age);
+    }
+
+    for item in &person {
+        println!("{:?}", item);
+    }
+
+    for key in person.keys() {
+        println!("{:?}", key);
+    }
+
+    let mut hash_map: HashMap<&str, &str> = HashMap::new();
+    hash_map.insert("Apple", "Red");
+    hash_map.insert("Apple", "Green");
+
+    hash_map.entry("Apple").or_insert("Black"); // only add new value if key doesnt exist.
+    println!("hash_map = {:?}", hash_map);
+
+
+    let some_vec: Vec<i32> = vec![5, 5, 7, 1, 5, 1, 1, 9, 1, 9, 5];
+    let mut freq_vec:HashMap<i32, u32> = HashMap::new();
+
+    for i in &some_vec { // same as some_vec.iter()
+        let freq: &mut u32 = freq_vec.entry(*i).or_insert(0);
+        *freq += 1; // Same reference to the entry each time is incremented here.
+    }
+    println!("{:?}", freq_vec);
+
+}
+
+
+struct Item {
+    id: i32,
+    title: String,
+    year: u32,
+    item_type: ItemType,
+}
+
+#[derive(Debug)]
+enum ItemType {
+    Book,
+    Magazine,
+}
+
+fn display_item_info(item: Item) {
+    println!("ID = {}", item.id);
+    println!("Title = {}", item.title);
+    println!("Year = {}", item.year);
+    println!("Type {:?}", item.item_type);
+    println!("------------------");
+}
+
+fn library_mgmt() {
+    display_item_info(
+        Item{
+            id: 0,
+            title: String::from("book1"),
+            year: 2020,
+            item_type: ItemType::Book,
+        }
+    );
+    display_item_info(
+        Item{
+            id: 1,
+            title: String::from("magazine1"),
+            year: 2020,
+            item_type: ItemType::Magazine,
+        }
+    )
+}
+
+
+
+#[derive(Debug)]
+struct AStudent {
+    id: i32,
+    name: String,
+    grade: String,
+}
+
+struct AStudentManager {
+    students: HashMap<i32, AStudent>
+}
+
+impl AStudentManager {
+    fn new() -> Self {
+        AStudentManager{students: HashMap::new()}
+    }
+    
+    fn add_student(&mut self, student: AStudent) -> Result<(), String> {
+        if self.students.contains_key(&student.id) {
+            Result::Err(format!("Student with id {} already exists", student.id))
+        } else {
+            self.students.insert(student.id, student);
+            Result::Ok(())
+        }
+    }
+
+    fn get_student(&self, id: i32) -> Option<&AStudent> {
+        self.students.get(&id)
+    }
+}
+
+fn student_mgr_assignment() {
+    let mut student_mgr: AStudentManager = AStudentManager::new();
+    let student1: AStudent = AStudent{
+        id: 0,
+        name: String::from("John"),
+        grade: String::from("Grade 10"),
+    };
+    let student2: AStudent = AStudent{
+        id: 0,
+        name: String::from("Alex"),
+        grade: String::from("Grade 8"),
+    };
+
+    let mut students: Vec<AStudent> = Vec::new();
+    students.push(student1);
+    students.push(student2);
+
+    for student in students {
+        match student_mgr.add_student(student) {
+            Ok(()) => println!("Student added!"),
+            Err(err) => println!("Failed to add student. Error={}", err),
+        }
+    }
+
+    match student_mgr.get_student(1) {
+        Some(student) => println!("Get id : {:?}", student),
+        None => println!("Student with id 1 not found."),
+    }
 }
