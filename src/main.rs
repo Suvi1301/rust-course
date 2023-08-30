@@ -236,7 +236,10 @@ fn main() {
     hash_maps();
     library_mgmt();
     student_mgr_assignment();
-;
+    closures();
+    function_types();
+    iterators();
+    sets_assigment();
 }
 
 
@@ -1135,4 +1138,203 @@ fn student_mgr_assignment() {
         Some(student) => println!("Get id : {:?}", student),
         None => println!("Student with id 1 not found."),
     }
+}
+
+
+// LIFETIMES
+/*
+Why we need lifetimes?
+*/
+
+fn lifetimes() {
+
+    /*
+    let i: &i32;
+    {
+        let j: i32 = 5;
+        i = &j;
+    }
+    println!("The value of i = {}", i); // here we are referring to j which is now out of scope and is freed. This is a dangling reference.
+    */
+
+}
+
+
+// CLOSURES
+// syntax: |...| {...}
+
+
+fn closures() {
+
+    let x = 5;
+    let closure1 = || println!("This is a print inside this closure without any input values");
+    closure1();
+
+    let closure2 = |num: i32| println!("I am printing the input inside this closure = {}", num);
+    closure2(x);
+
+    let closure3 = |general_info: String, name: &str, age: i32| { println!("{} {} {}", general_info, name, age) };
+    let general_info: String = String::from("The details are ");
+    let (person_name, person_age) = (String::from("Suvi"), 25);
+    closure3(general_info, &person_name, person_age); // Here values of general_info and person_age has moved but person_name hasnt
+
+    let closure4 = |num| num*num;
+    let x = 5;
+    closure4(x); // Even though closure input hasnt specified type, it is inferred from first call and is then set in stone.
+
+    let division_status = |y: f32| { if y != 0.0 { true } else { false }};
+    division_closures(5.0, 0.0, division_status);
+    division_closures(5.0, 2.0, division_status);
+
+
+    let mut vec_1: Vec<i32> = vec![1, 2, 3];
+    let some_closure = || {
+        println!("Vec 1: {:?}", vec_1); // here rust infers vec_1 as an immutable ref because we arent changing it.
+    };
+    println!("Vec 1: {:?}", vec_1);
+    some_closure(); // This is where the scope of the immutatble ref to vec_1 ends.
+
+    let mut mutable_closure = || { // here the closure must be mut because closure is mutating another value.
+        vec_1.push(35);
+    };
+    // println!("{:?}", vec_1); This wont be allowed because closure has borrowed the mutable ref of vec_1
+    // vec_1.push(1) Again not allowed for same above reason.
+    mutable_closure();
+
+    let move_value_closure = || {
+        let vec_2: Vec<i32> = vec_1; // Here compiler infers that ownership of vec_1 is given to to vec_2 so it is done by value not referece.
+    };
+
+    move_value_closure();
+    // println!("Vec 1: {:?}", vec_1); vec_1's value is dropped as it is owned by vec_2 which is now out of scope.
+    // println!("Vec 2: {:?}", vec_2); vec_2 is out of scope here and is dropped.
+
+
+}
+
+fn division_closures<F: Fn(f32) -> bool>(x : f32, y: f32, f: F) {
+    if f(y) {
+        println!("The division result is {}", x / y);
+    } else {
+        println!("Division by zero not possible");
+    }
+}
+
+
+// FUNCTION POINTER TYPES
+
+fn function_types() {
+    let f: fn(i32, i32) -> i32 = min;
+    println!("the min of the two values is {:?}", f(2, 3));
+    let f: fn(i32, i32) -> i32 = max;
+    println!("the min of the two values is {:?}", f(2, 3));
+
+    let (my_name, my_age) = (String::from("Suvi"), 25);
+    prints_full_info(prints_name, my_name.as_str(), my_age);
+
+    let answer: i32 = do_twice(add_one, 5);
+    println!("Answer = {}", answer);
+}
+
+fn max(x: i32, y: i32) -> i32 {
+    if x > y { x } else { y }
+}
+
+fn min(x: i32, y: i32) -> i32 {
+    if x < y { x } else { y }
+}
+
+fn prints_name(name: &str) {
+    println!("Name is {}", name);
+}
+
+fn prints_full_info(f: fn(&str), some_one: &str, age: i32) {
+    f(some_one);
+    println!("Age = {}", age);
+}
+
+fn add_one(x: i32) -> i32 {
+    x + 1
+}
+
+fn do_twice(f: fn(i32) -> i32, arg: i32) -> i32 {
+    f(arg) + f(arg)
+}
+
+
+// ITERATORS
+
+fn iterators() {
+    let some_vec: Vec<i32> = vec![1, 2];
+    let mut iter: std::slice::Iter<'_, i32> = some_vec.iter();
+    println!("The iterator = {:?}", iter);
+
+    println!("{:?}", iter.next());
+    println!("{:?}", iter.next());
+    println!("{:?}", iter.next());
+
+    let a: Vec<i32> = vec![1, 2, 3, 4, 5, 6];
+    let check: bool = a.iter().any(|&x| x > 0);
+    println!("Value of the any function is = {}", check);
+
+    let check: bool = a.iter().all(|&x| x > 0);
+    println!("Value of the all function is = {}", check);
+
+    let check: Option<&i32> = a.iter().find(|&&x| x > 0);
+    println!("The value of the find function is {:?}", check);
+
+    let check: Option<usize> = a.iter().position(|&x| x > 4);
+    println!("The value of the position function is {}", check.unwrap());
+
+    let check: Option<usize> = a.iter().rposition(|&x| x > 4);
+    println!("The value of the rposition function is {}", check.unwrap());
+
+    let check: Option<&i32> = a.iter().max();
+    println!("The value of the max function is {}", check.unwrap());
+
+    let check: Option<&i32> = a.iter().min();
+    println!("The value of the min function is {}", check.unwrap());
+
+    let mut iter: std::iter::Rev<std::slice::Iter<'_, i32>> = a.iter().rev();
+    println!("iter.next = {:?}", iter.next());
+
+    let a: Vec<u32> = vec![1, 2, 3, 4, 5, 6];
+    let filtered_values: Vec<&u32> = a.iter().filter(|&x| *x > 4).collect::<Vec<&u32>>();
+    println!("{:?}", filtered_values);
+
+    let b: Vec<u32> = a.clone();
+    // into_iter uses the actual values so it moves the values in 'a' and hence 'a' is dropped.
+    let filtered_values: Vec<u32> = a.into_iter().filter(|&x| x > 4).collect::<Vec<u32>>();
+    println!("{:?}", filtered_values);
+
+    let mut mapped_values = b.iter().map(|x| 2 * *x).collect::<Vec<u32>>();
+    println!("{:?}", mapped_values);
+
+    let mut mapped_values = b.iter().map(|x| 2 * *x).filter(|x| *x > 8).collect::<Vec<u32>>();
+    println!("{:?}", mapped_values);
+
+}
+
+
+fn sets_assigment() {
+    let vec_1: Vec<u32> = vec![5, 4, 3, 6, 9];
+    let vec_2: Vec<u32> = vec![5, 8, 6, 4, 10, 15, 20, 21];
+    let intersect = intersection(&vec_1, &vec_2);
+    println!("Intersection = {:?}", intersect);
+    let uni = union(&vec_1, &vec_2);
+    println!("Union = {:?}", uni);
+}
+
+fn intersection(v1: &Vec<u32>, v2: &Vec<u32>) -> Vec<u32>{
+    let intersect: Vec<u32> = v1.iter().filter(|&x| v2.contains(x)).cloned().collect();
+    intersect
+}
+
+fn union(v1: &Vec<u32>, v2: &Vec<u32>) -> Vec<u32> {
+    let mut union_set: Vec<u32> = v1.clone();
+    let v2_without_v1: Vec<u32> = v2.iter().filter(|&x| !v1.contains(x)).cloned().collect();
+    for item in v2_without_v1 {
+        union_set.push(item);
+    }
+    union_set
 }
