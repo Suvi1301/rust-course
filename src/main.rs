@@ -1,5 +1,6 @@
 use std::hash;
 use std::{f32::consts::PI, fmt::Arguments};
+use rust_course::sec_8;
 
 fn main() {
     // this is a comment!
@@ -240,6 +241,14 @@ fn main() {
     function_types();
     iterators();
     sets_assigment();
+
+    sec_8::smart_pointers();
+    sec_8::linked_list();
+    sec_8::deref_coersion();
+    sec_8::rc_pointers();
+    sec_8::doubly_linked_list();
+    sec_8::weak_and_strong_refs()
+
 }
 
 
